@@ -1,6 +1,4 @@
 from fastapi import FastAPI, Query
-import uvicorn
-from flask import request, jsonify , make_response
 import mysql.connector
 from Model import User, CROP, Controller, Environment, ParaMeter
 
@@ -190,5 +188,25 @@ def controller(Con:Controller):
             mycursor.execute(sql, val)
             mydb.commit()
             return {"status": "success", "message": "Table is update"}
+    else:
+        return {"status": "no success", "message": "Not found a SN_farm"}
+    
+@app.get("/GetEnvironment/{Sn_farm}")
+def GetEnvironment(Sn_farm:str):
+    mydb = mysql.connector.connect(host=host, user=user, password=password, db=db)
+    mycursor = mydb.cursor(dictionary=True)
+    sql = "SELECT * FROM crop WHERE SN_farm = %s"
+    val = (Sn_farm,)
+    mycursor.execute(sql, val)
+    myresult = mycursor.fetchall()
+
+    crop_id = myresult[0]["CropID"]
+
+    if (myresult != []):
+        sql = "SELECT * FROM environment WHERE CropID = %s"
+        val = (crop_id,)
+        mycursor.execute(sql, val)
+        myresult = mycursor.fetchall()
+        return myresult
     else:
         return {"status": "no success", "message": "Not found a SN_farm"}
