@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Query
+import uvicorn
+from flask import request, jsonify , make_response
 import mysql.connector
-from Model import User, CROP, Controller, Environment, ParaMeter
+from Model import User, CROP, Controller, Environment, ParaMeter, login_para
 
 app = FastAPI()
 host = "localhost"
@@ -18,15 +20,15 @@ def read():
     return myresult
 
 #ที่ใช้งาน
-@app.get("/login")
-def login(email: str, Pass: str):
+@app.post("/login")
+def login(EandP:login_para):
     mydb = mysql.connector.connect(host=host, user=user, password=password, db=db)
     mycursor = mydb.cursor(dictionary=True)
-    if (email == "" or Pass == ""):
+    if (EandP.email == "" or EandP.Pass == ""):
         return {"error": "password or email is Null"}
     else:
         sql = "SELECT * FROM user WHERE Email = %s AND password = %s"
-        val = (email, Pass)
+        val = (EandP.email, EandP.Pass)
         mycursor.execute(sql, val)
         myresult = mycursor.fetchall()
         if (myresult == []):

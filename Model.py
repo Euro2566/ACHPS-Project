@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 from typing import Optional
 
+class login_para(BaseModel):
+    email:str
+    Pass:str
 
 class User(BaseModel):
     name:str
