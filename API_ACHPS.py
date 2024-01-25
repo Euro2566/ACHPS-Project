@@ -1,14 +1,24 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from flask import request, jsonify , make_response
 import mysql.connector
 from Model import User, CROP, Controller, Environment, ParaMeter, login_para
+
 
 app = FastAPI()
 host = "localhost"
 user = "root"
 password = ""
 db = "achps_db"
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # สามารถแก้ไขเป็นรายชื่อเซิร์ฟเวอร์ที่ได้รับอนุญาต
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 @app.get("/Read")
