@@ -44,7 +44,7 @@ def login(EandP:login_para):
         if (myresult == []):
             return {"User_id": "Null"}
         else:
-            return myresult[0]
+            return myresult
 
 @app.post("/register")
 def register(userData: User):
