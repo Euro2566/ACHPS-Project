@@ -57,7 +57,7 @@ class MainControl:
         if self.state == 1: 
             if self.pH_before == 0:
                 self.pH_before = self.ph_sensor.read_ph_value()
-            elif self.ph_sensor.read_ph_value() <= self.pH_before + 0.5:
+            elif self.ph_sensor.read_ph_value() <= self.pH_before + 0.2:
                 self.delay += 0.5
             
              
@@ -76,7 +76,7 @@ class MainControl:
         if self.state == 2:
             if self.EC_before == 0:
                 self.EC_before = self.ec_sensor.read_ec_value()
-            elif self.ec_sensor.read_ec_value() <= self.EC_before + 0.5:
+            elif self.ec_sensor.read_ec_value() <= self.EC_before + 0.2:
                 self.delay += 0.5
                 print(self.delay)
             
@@ -114,18 +114,20 @@ class MainControl:
         GPIO.setup(Intensity_pin_OFF, GPIO.OUT)
         print("Dimming")
         if self.intensity_sensor.read_intensity_value() < IntensityValue  and self.state_dimming:
+            print("Dim close")
             GPIO.output(Intensity_pin_ON, GPIO.HIGH)
             GPIO.output(Intensity_pin_OFF, GPIO.LOW)
-            time.sleep(4)
+            time.sleep(2)
             
             GPIO.output(Intensity_pin_ON, GPIO.LOW)
             GPIO.output(Intensity_pin_OFF, GPIO.LOW)
             GPIO.cleanup()
             self.state_dimming = False
         elif self.intensity_sensor.read_intensity_value() > IntensityValue  and self.state_dimming == False:
+            print("Dim open")
             GPIO.output(Intensity_pin_ON, GPIO.LOW)
             GPIO.output(Intensity_pin_OFF, GPIO.HIGH)
-            time.sleep(3.6)
+            time.sleep(2)
             
             GPIO.output(Intensity_pin_ON, GPIO.LOW)
             GPIO.output(Intensity_pin_OFF, GPIO.LOW)
@@ -140,17 +142,23 @@ class MainControl:
         if  10 <= hour <= 16:
             intensity_low = (IntensityValue / 100) * 40
             if self.intensity_sensor.read_intensity_value() < intensity_low:
+                print("led on")
                 GPIO.output(LED, GPIO.LOW)
             else:
+                print("led off")
                 GPIO.output(LED, GPIO.HIGH)
-                GPIO.cleanup()
                 
+        else:
+            GPIO.output(LED, GPIO.HIGH)
+            
+            
     
     def ControlTemperature(self,Temp,Humi):
         Fan_pin = 19
         flogging_pin = 0
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(Fan_pin, GPIO.OUT)
+        print("Control temp")
         
         if self.temp_and_humidity.read_temperature() > 0.0 and self.temp_and_humidity.read_humidity() > 0.0 :
 
@@ -246,37 +254,43 @@ def turn_off():
 if __name__ == "__main__":
     
     
-    '''
     GPIO.setmode(GPIO.BCM)
-    GPIO.setup(0, GPIO.OUT)
-    #GPIO.setup(6, GPIO.OUT)
-    #turn_on()
-    GPIO.output(0, GPIO.LOW)
-    #GPIO.output(22, GPIO.LOW)
-    time.sleep(5)
-    GPIO.output(0, GPIO.HIGH)
+    GPIO.setup(5, GPIO.OUT)
+    GPIO.setup(6, GPIO.OUT)
+    #turn_off()
+    #GPIO.output(17, GPIO.HIGH)
     #GPIO.output(22, GPIO.HIGH)
-    #turn_on()
+    #time.sleep(2)
+    #GPIO.output(0, GPIO.HIGH)
+    #GPIO.output(22, GPIO.HIGH)
+    turn_off()
+    time.sleep(2)
     #time.sleep(3.6)
 
-    #GPIO.cleanup()
-
+    GPIO.cleanup()
+    '''
         # Clean up GPIO settings
-    '''
+    
     a = MainControl()
-    a.Clear_output()
-    '''
+    #a.Clear_output()
+    
     while True:
 
-        
-        a.Test()
-        #a.Mixfertilizer(2.6,6.2)
-        #a.ControlTemperature(27,40)
-        #a.Dimming(65)
-        print(a.Return_value())
-        time.sleep(1)
-        print()
+        try:
+            a.Test()
+            a.Mixfertilizer(0.9,5.5)
+            #a.ControlTemperature(27,40)
+            #a.Dimming(65)
+            #a.ControlTemperature(27, 70)
+            #print(a.Return_value())
+            time.sleep(1)
+            print()
+        except:
+            pass
     '''
+        
+            
+         
     
     
     

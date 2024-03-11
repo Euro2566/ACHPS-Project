@@ -6,8 +6,8 @@ from hist2 import *
 from Maincontroller import *
 
 
-url = "https://b9d4-171-103-193-214.ngrok-free.app"
-sn_farm = "A01"
+url = "https://92f1-171-103-193-214.ngrok-free.app"
+sn_farm = "r1"
 
 def test():
     url_crop = "/parameter"
@@ -52,6 +52,7 @@ def getEnvaronment(sn_farm):
                 '''
     else:
         print("Failed to fetch data. Status code:", response.status_code)
+        return "Failed connect"
                         
                 
 
@@ -100,6 +101,9 @@ def updateParameter(sn_farm, ECvalue, pHvalue, IntensityValue, Temperature, Humi
 
 oldHour = None
 imgresult = None
+state_mixer = True
+state_read = True
+state_error = False
 
 status_controller_error = True
 while status_controller_error:
@@ -112,11 +116,25 @@ while status_controller_error:
 while 1:
     status = check_wifi_connection()
 
-    if status == "Connected to WiFi":
-
-        parameter_use = getEnvaronment(sn_farm)
-        
-        while status == "Connected to WiFi":
+    if status == "Connected to WiFi" and state_error == False:
+        try:
+            print("1")
+            parameter_use = getEnvaronment(sn_farm)
+            state_read = True
+            
+            if type(parameter_use) == str:
+                print("2")
+                if parameter_use == "Failed connect":
+                    state_error = True
+                    
+            else:
+                state_error = False
+                
+        except:
+            state_read = False
+            state_error = True
+            
+        while status == "Connected to WiFi" and state_read and state_error == False:
             try:
                 status = check_wifi_connection()
                 
@@ -130,13 +148,18 @@ while 1:
                     command = "sudo fswebcam -r --no-banner /home/pi/testimage/test.jpg"
                     subprocess.run(command, shell=True)
                     imgresult = processing_img()
+                    state_mixer = True
+                    
 
-                if (hour == 18 and minute <= 30):
+                if (hour == 18 and minute <= 30) and state_mixer:
                     if imgresult == "linear phase":
                         controller.Mixfertilizer((parameter_use["EC"]/100)*80,parameter_use["pH"])
                     
                     else:
                         controller.Mixfertilizer(parameter_use["EC"],parameter_use["pH"])
+                elif (hour >= 18 and minute > 30) and state_mixer:
+                    controller.Clear_output()
+                    state_mixer = False
 
                 controller.ControlTemperature(parameter_use["Temperature"],parameter_use["Humidity"])
                 controller.Dimming(parameter_use["Intensity"])
@@ -150,9 +173,9 @@ while 1:
                         command = "sudo fswebcam -r --no-banner /home/pi/testimage/test.jpg"
                         subprocess.run(command, shell=True)
                         imgresult = processing_img()
-                        updateParameter(sn_farm, post_parameter["ec"], post_parameter["ph"], post_parameter["intensity"], int(post_parameter["temp"]), int(post_parameter["humi"]), imgresult)
+                        updateParameter(sn_farm, post_parameter["ec"], post_parameter["ph"], post_parameter["intensity"], int(post_parameter["temp"]), int(post_parameter["humi"]),'stady state phase')
                     else:
-                        updateParameter(sn_farm, post_parameter["ec"], post_parameter["ph"], post_parameter["intensity"], int(post_parameter["temp"]), int(post_parameter["humi"]), imgresult)
+                        updateParameter(sn_farm, post_parameter["ec"], post_parameter["ph"], post_parameter["intensity"], int(post_parameter["temp"]), int(post_parameter["humi"]), 'stady state phase')
             except:
                 controller.Clear_output()
                 print("error")
@@ -160,6 +183,7 @@ while 1:
     else:
         controller.ControlTemperature(27, 70)
         controller.Dimming(2000)
+        state_error = False
 
                 
             
